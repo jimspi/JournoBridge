@@ -1,37 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Career Profile Builder</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-900 text-white p-6">
-  <h1 class="text-3xl font-bold mb-6">Career Profile Builder</h1>
-  <label class="block mb-2">Choose Tone:</label>
-  <select id="tone" class="mb-4 p-2 rounded text-black">
-    <option value="professional">Professional</option>
-    <option value="creative">Creative</option>
-    <option value="confident">Confident</option>
-  </select>
-  <button id="buildBtn" class="bg-teal-500 px-4 py-2 rounded hover:bg-teal-400">Build My Profile</button>
-  <div id="output" class="mt-6 whitespace-pre-wrap bg-gray-800 p-4 rounded hidden"></div>
+<!-- profile.html -->
+<div id="output" class="mt-6 whitespace-pre-wrap bg-gray-800 p-4 rounded text-white hidden"></div>
 
-  <script>
-    document.getElementById('buildBtn').onclick = async () => {
-      const resume = localStorage.getItem('resumeText');
-      const tone = document.getElementById('tone').value;
-      const res = await fetch('/api/gpt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Write a 2-paragraph About Me and a short LinkedIn headline using a ${tone} tone based on this resume: ${resume}`
-        })
-      });
-      const data = await res.json();
-      document.getElementById('output').classList.remove('hidden');
-      document.getElementById('output').textContent = data.output;
-    };
-  </script>
-</body>
-</html>
+<script>
+  document.getElementById('buildBtn').onclick = async () => {
+    const resume = localStorage.getItem('resumeText');
+    const tone = document.getElementById('tone').value;
+    const res = await fetch('/api/gpt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `Write a 2-paragraph About Me and a short LinkedIn headline using a ${tone} tone based on this resume: ${resume}`
+      })
+    });
+    const data = await res.json();
+    console.log(data.output); // Debug
+    const outputDiv = document.getElementById('output');
+    outputDiv.classList.remove('hidden');
+    outputDiv.textContent = data.output;
+  };
+</script>
+

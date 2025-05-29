@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Decoder | Pivot</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-teal-400 mb-2">Job Decoder</h1>
+    <p class="text-gray-300 mb-4">See how your resume compares to a job posting, and get keyword + alignment insights.</p>
+
+    <div class="bg-gray-800 p-4 rounded mb-4">
+      <h2 class="font-semibold text-teal-300 mb-2">Your Results</h2>
+      <button onclick="callGPT()" class="bg-teal-500 hover:bg-teal-400 px-4 py-2 rounded mb-4">Generate</button>
+      <pre id="output" class="whitespace-pre-wrap text-sm bg-gray-900 p-4 rounded hidden"></pre>
+      <button onclick="copyOutput()" class="mt-2 bg-teal-600 hover:bg-teal-500 px-4 py-1 text-sm rounded hidden" id="copyBtn">Copy Output</button>
+    </div>
+  </div>
+  <script>
+    async function callGPT() {
+      const input = localStorage.getItem("resumeText");
+      if (!input) return alert("No resume found.");
+      const res = await fetch("/api/gpt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: `Compare this resume to a job posting and show match %, missing keywords, and suggestions:
+
+${input}` })
+      });
+      const data = await res.json();
+      document.getElementById("output").textContent = data.text;
+      document.getElementById("output").classList.remove("hidden");
+      document.getElementById("copyBtn").classList.remove("hidden");
+    }
+    function copyOutput() {
+      navigator.clipboard.writeText(document.getElementById("output").textContent);
+      alert("Copied to clipboard");
+    }
+  </script>
+</body>
+</html>

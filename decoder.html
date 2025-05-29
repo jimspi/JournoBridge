@@ -1,33 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Decoder</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-900 text-white p-6">
-  <h1 class="text-3xl font-bold mb-6">Job Decoder</h1>
-  <label class="block mb-2">Paste Job Description:</label>
-  <textarea id="jobDesc" class="w-full h-40 mb-4 p-2 rounded text-black"></textarea>
-  <button id="decodeBtn" class="bg-teal-500 px-4 py-2 rounded hover:bg-teal-400">Analyze Fit</button>
-  <div id="output" class="mt-6 whitespace-pre-wrap bg-gray-800 p-4 rounded hidden"></div>
+<!-- decoder.html -->
+<div id="output" class="mt-6 whitespace-pre-wrap bg-gray-800 p-4 rounded text-white hidden"></div>
 
-  <script>
-    document.getElementById('decodeBtn').onclick = async () => {
-      const resume = localStorage.getItem('resumeText');
-      const job = document.getElementById('jobDesc').value;
-      const res = await fetch('/api/gpt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Compare this resume: ${resume} to this job description: ${job}. Return a match score, missing keywords, and improvement suggestions.`
-        })
-      });
-      const data = await res.json();
-      document.getElementById('output').classList.remove('hidden');
-      document.getElementById('output').textContent = data.output;
-    };
-  </script>
-</body>
-</html>
+<script>
+  document.getElementById('decodeBtn').onclick = async () => {
+    const resume = localStorage.getItem('resumeText');
+    const job = document.getElementById('jobDesc').value;
+    const res = await fetch('/api/gpt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `Compare this resume: ${resume} to this job description: ${job}. Return a match score, missing keywords, and improvement suggestions.`
+      })
+    });
+    const data = await res.json();
+    console.log(data.output); // Debug
+    const outputDiv = document.getElementById('output');
+    outputDiv.classList.remove('hidden');
+    outputDiv.textContent = data.output;
+  };
+</script>
+

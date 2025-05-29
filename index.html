@@ -6,51 +6,79 @@
   <title>JournoBridge</title>
   <link rel="icon" href="/favicon.ico" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
-<body class="bg-blue-900 text-white min-h-screen">
-  <header class="flex items-center justify-between px-6 py-4 bg-blue-800 shadow">
-    <div class="flex items-center space-x-3">
-      <span class="text-2xl font-bold">JournoBridge</span>
-    </div>
+<body class="bg-gradient-to-br from-blue-950 to-blue-800 text-white min-h-screen">
+  <header class="px-6 py-4 bg-blue-950 bg-opacity-90 shadow flex justify-between items-center">
+    <h1 class="text-2xl font-bold tracking-wide">JournoBridge</h1>
   </header>
 
-  <main>
-    <section class="text-center py-20 px-6">
-      <h1 class="text-4xl font-extrabold mb-4">Bridge Journalism to the Boardroom</h1>
-      <p class="text-lg max-w-2xl mx-auto">Use simple AI-powered tools to translate your newsroom experience into powerful corporate assets.</p>
-    </section>
-
-    <section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-12 bg-blue-800">
-      <a href="translator.html" class="block bg-white text-blue-900 rounded-lg p-6 shadow hover:bg-gray-100 transition">
-        <h2 class="text-xl font-semibold mb-2">Skill Translator</h2>
-        <p>Convert your journalism work into resumes and LinkedIn-ready bullet points.</p>
-      </a>
-      <a href="decoder.html" class="block bg-white text-blue-900 rounded-lg p-6 shadow hover:bg-gray-100 transition">
-        <h2 class="text-xl font-semibold mb-2">Job Decoder</h2>
-        <p>Paste any job description and get a match score and tailored talking points.</p>
-      </a>
-      <a href="profile.html" class="block bg-white text-blue-900 rounded-lg p-6 shadow hover:bg-gray-100 transition">
-        <h2 class="text-xl font-semibold mb-2">Career Profile Builder</h2>
-        <p>Build a modern, marketable profile designed for your pivot—not your past.</p>
-      </a>
-    </section>
-
-    <section class="text-center py-16 px-6 bg-blue-900">
-      <h3 class="text-2xl font-semibold mb-4">Join the Movement</h3>
-      <form class="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
-        <input type="email" placeholder="Your Email" class="w-full sm:w-auto px-4 py-2 rounded bg-white text-blue-900 placeholder-gray-500" />
-        <button class="bg-white text-blue-900 font-semibold px-6 py-2 rounded hover:bg-gray-100">Get Started</button>
-      </form>
-    </section>
+  <main class="text-center px-6 py-20">
+    <h2 class="text-5xl font-extrabold mb-4 leading-tight">Bridge Journalism to the Boardroom</h2>
+    <p class="text-lg max-w-xl mx-auto mb-10 text-blue-100">Upload your resume and choose a tool to unlock job-ready results powered by AI.</p>
+    <label for="resumeUpload" class="inline-block bg-blue-700 hover:bg-blue-600 transition text-white px-6 py-3 rounded cursor-pointer">Upload Resume</label>
+    <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" class="hidden" />
+    <p class="mt-2 text-sm text-blue-200">Optional: Upload your resume to enhance all tool results.</p>
   </main>
 
-  <footer class="text-center py-4 text-sm bg-blue-800 text-white">
+  <section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 pb-16">
+    <a href="translator.html" class="glass hover:bg-white hover:text-blue-900 transition p-6 rounded-xl shadow-xl">
+      <h3 class="text-2xl font-bold mb-2">Skill Translator</h3>
+      <p>Convert resume content into LinkedIn-style bullet points and match job titles with real-time links.</p>
+    </a>
+    <a href="decoder.html" class="glass hover:bg-white hover:text-blue-900 transition p-6 rounded-xl shadow-xl">
+      <h3 class="text-2xl font-bold mb-2">Job Decoder</h3>
+      <p>Paste any job description to get match score, keyword highlights, and personalization tips using your resume.</p>
+    </a>
+    <a href="profile.html" class="glass hover:bg-white hover:text-blue-900 transition p-6 rounded-xl shadow-xl">
+      <h3 class="text-2xl font-bold mb-2">Career Profile Builder</h3>
+      <p>Generate a modern career profile and personal brand summary tailored to your target industry.</p>
+    </a>
+  </section>
+
+  <section class="text-center py-16 px-6">
+    <h3 class="text-2xl font-semibold mb-4">Join the Movement</h3>
+    <form class="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
+      <input type="email" placeholder="Your Email" class="w-full sm:w-auto px-4 py-2 rounded bg-white text-blue-900 placeholder-gray-500" />
+      <button class="bg-white text-blue-900 font-semibold px-6 py-2 rounded hover:bg-gray-100">Get Started</button>
+    </form>
+  </section>
+
+  <footer class="text-center py-6 text-sm text-blue-300">
     © 2025 JournoBridge. Built for your next chapter.
   </footer>
+
+  <script>
+    document.getElementById('resumeUpload').addEventListener('change', async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const typedarray = new Uint8Array(reader.result);
+        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          fullText += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        localStorage.setItem('resumeText', fullText);
+        alert('Resume uploaded and stored successfully!');
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
 </body>
 </html>
+
 
 

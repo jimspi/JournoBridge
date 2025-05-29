@@ -1,45 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JournoBridge</title>
-    <link rel="icon" href="data:,">
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-blue-900 text-white font-sans min-h-screen">
-    <header class="px-6 py-4 bg-blue-800 shadow">
-      <h1 class="text-3xl font-bold">JournoBridge</h1>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JournoBridge</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { font-family: Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-blue-900 text-white min-h-screen">
+  <header class="flex items-center justify-between px-6 py-4 bg-blue-800 shadow">
+    <div class="flex items-center space-x-3">
+      <span class="text-2xl font-bold">JournoBridge</span>
+    </div>
+  </header>
 
-    <main class="text-center px-6 py-20">
-      <h2 class="text-4xl font-extrabold mb-6">Bridge Journalism to the Boardroom</h2>
-      <p class="text-lg max-w-xl mx-auto mb-8">
-        Use simple AI-powered tools to translate your newsroom experience into high-value career assets.
-      </p>
-      <a href="#features" class="inline-block bg-white text-blue-900 font-semibold px-6 py-3 rounded shadow hover:bg-gray-200 transition">
-        Start Free
-      </a>
-    </main>
-
-    <section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-16 bg-blue-800">
-      <div class="bg-white text-blue-900 rounded-lg p-6 shadow">
-        <h3 class="text-xl font-semibold mb-2">Skill Translator</h3>
-        <p>Convert journalism experience into bullet points recruiters understand.</p>
-      </div>
-      <div class="bg-white text-blue-900 rounded-lg p-6 shadow">
-        <h3 class="text-xl font-semibold mb-2">Job Decoder</h3>
-        <p>Paste a job description, and we’ll tell you how to speak their language.</p>
-      </div>
-      <div class="bg-white text-blue-900 rounded-lg p-6 shadow">
-        <h3 class="text-xl font-semibold mb-2">Career Profile Builder</h3>
-        <p>Build a sleek, modern profile that reflects your pivot, not your past.</p>
-      </div>
+  <main>
+    <section class="text-center py-20 px-6">
+      <h1 class="text-4xl font-extrabold mb-4">Bridge Journalism to the Boardroom</h1>
+      <p class="text-lg max-w-2xl mx-auto">Use simple AI-powered tools to translate your newsroom experience into powerful corporate assets.</p>
     </section>
 
-    <footer class="text-center py-6 text-sm bg-blue-800 text-white">
-      © 2025 JournoBridge. Built for your next chapter.
-    </footer>
-  </body>
+    <section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-12 bg-blue-800">
+      <a href="translator.html" class="block bg-white text-blue-900 rounded-lg p-6 shadow hover:bg-gray-100 transition">
+        <h2 class="text-xl font-semibold mb-2">Skill Translator</h2>
+        <p>Convert your journalism work into resumes and LinkedIn-ready bullet points.</p>
+      </a>
+      <a href="decoder.html" class="block bg-white text-blue-900 rounded-lg p-6 shadow hover:bg-gray-100 transition">
+        <h2 class="text-xl font-semibold mb-2">Job Decoder</h2>
+        <p>Paste any job description and get a match score and tailored talking points.</p>
+      </a>
+      <a href="profile.html" class="block bg-white text-blue-900 rounded-lg p-6 shadow hover:bg-gray-100 transition">
+        <h2 class="text-xl font-semibold mb-2">Career Profile Builder</h2>
+        <p>Build a modern, marketable profile designed for your pivot—not your past.</p>
+      </a>
+    </section>
+
+    <section class="text-center py-16 px-6 bg-blue-900">
+      <h3 class="text-2xl font-semibold mb-4">Join the Movement</h3>
+      <form class="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
+        <input type="email" placeholder="Your Email" class="w-full sm:w-auto px-4 py-2 rounded bg-white text-blue-900 placeholder-gray-500" />
+        <button class="bg-white text-blue-900 font-semibold px-6 py-2 rounded hover:bg-gray-100">Get Started</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="text-center py-4 text-sm bg-blue-800 text-white">
+    © 2025 JournoBridge. Built for your next chapter.
+  </footer>
+</body>
 </html>
+
 

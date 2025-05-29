@@ -1,33 +1,44 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Only POST requests are allowed' });
   }
 
   const { prompt } = req.body;
-  const apiKey = process.env.OPENAI_API_KEY;
 
-  if (!apiKey) {
-    return res.status(500).json({ error: 'OpenAI API key not set' });
+  if (!prompt) {
+    return res.status(400).json({ error: 'Missing prompt' });
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that provides clear, concise, and professional career insights.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1200
       })
     });
 
-    const data = await response.json();
-    res.status(200).json({ result: data.choices?.[0]?.message?.content || "No response." });
+    const openaiData = await openaiRes.json();
 
-  } catch (err) {
-    res.status(500).json({ error: err.toString() });
+    const message = openaiData.choices?.[0]?.message?.content;
+
+    if (!message) {
+      throw new Error('Invalid response from OpenAI');
+    }
+
+    return res.status(200).json({ output: message });
+  } catch (error) {
+    console.error('GPT API Error:', error);
+    return res.status(500).json({ error: 'Failed to process your request' });
   }
 }
+

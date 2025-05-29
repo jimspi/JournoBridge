@@ -19,7 +19,7 @@
       <option value="confident">Confident</option>
     </select>
     <button id="buildBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Build My Profile</button>
-    <pre id="output" class="bg-gray-800 text-white p-4 rounded hidden"></pre>
+    <pre id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap break-words"></pre>
   </main>
   <script>
     document.getElementById('buildBtn').onclick = async () => {
@@ -29,7 +29,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Write a compelling 2-paragraph About Me and LinkedIn headline using a ${tone} tone based on this resume:\n\n${resume}`
+          prompt: `Using a ${tone} tone, write a strong 2-paragraph About Me and a LinkedIn headline that showcases this resume:\n\n${resume}`
         })
       });
       const data = await res.json();

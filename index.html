@@ -28,20 +28,21 @@
     <label for="resumeUpload" class="inline-block bg-teal-500 hover:bg-teal-400 transition text-white px-6 py-3 rounded cursor-pointer ring-2 ring-teal-300">Upload Resume</label>
     <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" class="hidden" />
     
+  <p id="uploadStatus" class="mt-4 text-teal-300 font-semibold hidden">Resume uploaded successfully!</p>
   </main>
 
   <section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 pb-16">
     <a href="translator.html" class="glass bg-gray-800 text-white transition p-6 rounded-xl shadow-xl hover:ring-2 hover:ring-teal-300 ring-1 ring-teal-700">
       <h3 class="text-2xl font-bold mb-2 text-teal-300">Skill Translator</h3>
-      <p>Convert resume content into LinkedIn-style bullet points and match job titles with real-time links.</p>
+      <p>Analyze your past roles and turn them into recruiter-ready bullet points with smart job title suggestions.</p>
     </a>
     <a href="decoder.html" class="glass bg-gray-800 text-white transition p-6 rounded-xl shadow-xl hover:ring-2 hover:ring-teal-400">
       <h3 class="text-2xl font-bold mb-2 text-teal-300">Job Decoder</h3>
-      <p>Paste any job description to get match score, keyword highlights, and personalization tips using your resume.</p>
+      <p>Paste a job description and instantly see how well your resume aligns, including keywords and improvements.</p>
     </a>
     <a href="profile.html" class="glass bg-gray-800 text-white transition p-6 rounded-xl shadow-xl hover:ring-2 hover:ring-teal-400">
       <h3 class="text-2xl font-bold mb-2 text-teal-300">Career Profile Builder</h3>
-      <p>Generate a modern career profile and personal brand summary tailored to your target industry.</p>
+      <p>Create a concise, compelling personal summary you can use on LinkedIn, portfolios, and bios.</p>
     </a>
   </section>
 
@@ -64,21 +65,46 @@
       const reader = new FileReader();
       reader.onload = async function() {
         const typedarray = new Uint8Array(reader.result);
-        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        try {
+          const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            fullText += content.items.map(item => item.str).join(' ') + '
+';
+          }
+          if (fullText.trim().length > 0) {
+            localStorage.setItem('resumeText', fullText);
+            const statusMsg = document.getElementById('uploadStatus');
+            if (statusMsg) {
+              statusMsg.classList.remove('hidden');
+              statusMsg.textContent = 'Resume uploaded successfully!';
+            }
+          }
+        } catch (err) {
+          alert('Failed to process resume. Please try a different PDF.');
+        }
+      };).promise;
         let fullText = '';
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-          fullText += content.items.map(item => item.str).join(' ') + '\n';
+          fullText += content.items.map(item => item.str).join(' ') + '
+';
         }
         localStorage.setItem('resumeText', fullText);
-        alert('Resume uploaded and stored successfully!');
+        const statusMsg = document.getElementById('uploadStatus');
+        if (statusMsg) {
+          statusMsg.classList.remove('hidden');
+        }
       };
       reader.readAsArrayBuffer(file);
     });
   </script>
 </body>
 </html>
+
 
 
 

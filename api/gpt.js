@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that provides clear, concise, and professional career insights.' },
+          { role: 'system', content: 'You are a helpful assistant that formats clear and helpful job-seeking content.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
@@ -27,18 +27,18 @@ export default async function handler(req, res) {
       })
     });
 
-    const openaiData = await openaiRes.json();
+    const data = await response.json();
 
-    const message = openaiData.choices?.[0]?.message?.content;
-
-    if (!message) {
-      throw new Error('Invalid response from OpenAI');
+    if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+      console.error('OpenAI error:', data);
+      return res.status(502).json({ error: 'Invalid response from OpenAI', details: data });
     }
 
-    return res.status(200).json({ output: message });
+    res.status(200).json({ output: data.choices[0].message.content });
   } catch (error) {
-    console.error('GPT API Error:', error);
-    return res.status(500).json({ error: 'Failed to process your request' });
+    console.error('GPT API error:', error);
+    res.status(500).json({ error: 'Failed to contact OpenAI', details: error.message });
   }
 }
+
 

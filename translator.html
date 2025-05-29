@@ -15,7 +15,7 @@
     <label class="block mb-2 text-teal-200">Target Job Title:</label>
     <input type="text" id="targetTitle" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
     <button id="translateBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Translate My Resume</button>
-    <pre id="output" class="bg-gray-800 text-white p-4 rounded hidden"></pre>
+    <pre id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap break-words"></pre>
   </main>
   <script>
     document.getElementById('translateBtn').onclick = async () => {
@@ -25,7 +25,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Rewrite this resume for a ${target} position using bullet points and link to 3 active job listings.\n\nResume:\n${resume}`
+          prompt: `Rewrite this resume for a ${target} position using bullet points tailored to that job. Suggest 3 related job titles the user should explore.`
         })
       });
       const data = await res.json();

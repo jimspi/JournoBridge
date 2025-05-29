@@ -27,8 +27,7 @@
     <p class="text-lg max-w-xl mx-auto mb-10 text-gray-300">Upload your resume and choose a tool to unlock pivot-ready results powered by AI.</p>
     <label for="resumeUpload" class="inline-block bg-teal-500 hover:bg-teal-400 transition text-white px-6 py-3 rounded cursor-pointer ring-2 ring-teal-300">Upload Resume</label>
     <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" class="hidden" />
-    
-  <p id="uploadStatus" class="mt-4 text-teal-300 font-semibold hidden">Resume uploaded successfully!</p>
+    <p id="uploadStatus" class="mt-4 text-teal-300 font-semibold hidden">Resume uploaded successfully!</p>
   </main>
 
   <section id="features" class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 pb-16">
@@ -59,54 +58,56 @@
   </footer>
 
   <script>
-  document.getElementById('resumeUpload').addEventListener('change', async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function() {
-      const extension = file.name.split('.').pop().toLowerCase();
-      if (extension === 'pdf') {
-        const typedarray = new Uint8Array(reader.result);
-        try {
-          const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-          let fullText = '';
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            fullText += content.items.map(item => item.str).join(' ') + '
-';
+    document.getElementById('resumeUpload').addEventListener('change', async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const extension = file.name.split('.').pop().toLowerCase();
+        if (extension === 'pdf') {
+          const typedarray = new Uint8Array(reader.result);
+          try {
+            const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              fullText += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            if (fullText.trim().length > 0) {
+              localStorage.setItem('resumeText', fullText);
+              document.getElementById('uploadStatus').classList.remove('hidden');
+              document.getElementById('uploadStatus').textContent = 'Resume uploaded successfully!';
+            }
+          } catch (err) {
+            alert('Failed to process PDF. Try another.');
           }
-          if (fullText.trim().length > 0) {
-            localStorage.setItem('resumeText', fullText);
-            document.getElementById('uploadStatus').classList.remove('hidden');
-            document.getElementById('uploadStatus').textContent = 'Resume uploaded successfully!';
+        } else if (extension === 'doc' || extension === 'docx') {
+          try {
+            const text = await file.text();
+            if (text.trim().length > 0) {
+              localStorage.setItem('resumeText', text);
+              document.getElementById('uploadStatus').classList.remove('hidden');
+              document.getElementById('uploadStatus').textContent = 'Resume uploaded successfully!';
+            }
+          } catch (err) {
+            alert('Failed to process Word document.');
           }
-        } catch (err) {
-          alert('Failed to process PDF. Try another.');
+        } else {
+          alert('Unsupported file type. Please upload PDF or Word documents only.');
         }
-      } else if (extension === 'doc' || extension === 'docx') {
-        try {
-          const text = await file.text();
-          if (text.trim().length > 0) {
-            localStorage.setItem('resumeText', text);
-            document.getElementById('uploadStatus').classList.remove('hidden');
-            document.getElementById('uploadStatus').textContent = 'Resume uploaded successfully!';
-          }
-        } catch (err) {
-          alert('Failed to process Word document.');
-        }
-      } else {
-        alert('Unsupported file type. Please upload PDF or Word documents only.');
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Autofill resume across tool pages
+    window.addEventListener('DOMContentLoaded', () => {
+      const resume = localStorage.getItem('resumeText');
+      if (resume && typeof handleResumeFromLocalStorage === 'function') {
+        handleResumeFromLocalStorage(resume);
       }
-    };
-    reader.readAsArrayBuffer(file);
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-
 

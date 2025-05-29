@@ -59,11 +59,13 @@
   </footer>
 
   <script>
-    document.getElementById('resumeUpload').addEventListener('change', async function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function() {
+  document.getElementById('resumeUpload').addEventListener('change', async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function() {
+      const extension = file.name.split('.').pop().toLowerCase();
+      if (extension === 'pdf') {
         const typedarray = new Uint8Array(reader.result);
         try {
           const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
@@ -76,34 +78,33 @@
           }
           if (fullText.trim().length > 0) {
             localStorage.setItem('resumeText', fullText);
-            const statusMsg = document.getElementById('uploadStatus');
-            if (statusMsg) {
-              statusMsg.classList.remove('hidden');
-              statusMsg.textContent = 'Resume uploaded successfully!';
-            }
+            document.getElementById('uploadStatus').classList.remove('hidden');
+            document.getElementById('uploadStatus').textContent = 'Resume uploaded successfully!';
           }
         } catch (err) {
-          alert('Failed to process resume. Please try a different PDF.');
+          alert('Failed to process PDF. Try another.');
         }
-      };).promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          fullText += content.items.map(item => item.str).join(' ') + '
-';
+      } else if (extension === 'doc' || extension === 'docx') {
+        try {
+          const text = await file.text();
+          if (text.trim().length > 0) {
+            localStorage.setItem('resumeText', text);
+            document.getElementById('uploadStatus').classList.remove('hidden');
+            document.getElementById('uploadStatus').textContent = 'Resume uploaded successfully!';
+          }
+        } catch (err) {
+          alert('Failed to process Word document.');
         }
-        localStorage.setItem('resumeText', fullText);
-        const statusMsg = document.getElementById('uploadStatus');
-        if (statusMsg) {
-          statusMsg.classList.remove('hidden');
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  </script>
+      } else {
+        alert('Unsupported file type. Please upload PDF or Word documents only.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+</script>
 </body>
 </html>
+
 
 
 

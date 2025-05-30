@@ -1,3 +1,4 @@
+<!-- Job Decoder FIXED with Resume Check and Copy Button -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,26 +10,36 @@
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="text-center mb-8">
     <h1 class="text-3xl font-bold text-teal-300">Job Decoder</h1>
-    <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
+    <p class="text-gray-400">Paste a job description and we’ll decode it: alignment score, gaps, improvements, and interview tips.</p>
   </header>
   <main class="max-w-3xl mx-auto">
     <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
     <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
-    <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500 mb-4">Decode Job</button>
-    <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4 ml-2 hidden">Copy Results</button>
-    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
+    <div class="flex items-center mb-4">
+      <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Decode Job</button>
+      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Results</button>
+    </div>
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
   </main>
   <script>
     let lastOutput = '';
 
-    document.getElementById('decodeBtn').onclick = async () => {
+    // Ensure resume exists
+    window.addEventListener('DOMContentLoaded', () => {
       const resume = localStorage.getItem('resumeText');
       if (!resume) {
-        alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
+        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+      }
+    });
+
+    document.getElementById('decodeBtn').addEventListener('click', async () => {
+      const resume = localStorage.getItem('resumeText');
+      if (!resume) {
+        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
         return;
       }
 
-      const job = document.getElementById('jobDesc').value;
+      const job = document.getElementById('jobDesc').value.trim();
       if (!job) {
         alert('Please paste a job description before decoding.');
         return;
@@ -36,8 +47,7 @@
 
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
-
-      output.innerHTML = 'Thinking...';
+      output.textContent = 'Thinking...';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
 
@@ -46,17 +56,13 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            prompt: `You're a hiring strategist. Compare the resume below to this job description and respond with:
-
-1. Resume-to-job alignment score (0–100)
-2. Strongest matching sections from resume
-3. Gaps or weaknesses
-4. One specific change to improve resume
-5. One smart interview prep tip based on the job
-
-Resume: ${resume}
-
-Job: ${job}`
+            prompt: `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n` +
+                    `1. Resume-to-job alignment score (0–100)\n` +
+                    `2. Top matching resume sections\n` +
+                    `3. Gaps or missing skills\n` +
+                    `4. One specific improvement suggestion\n` +
+                    `5. One interview tip based on the job\n\n` +
+                    `Resume:\n${resume}\n\nJob Description:\n${job}`
           })
         });
 
@@ -72,20 +78,21 @@ Job: ${job}`
         output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
         console.error(err);
       }
-    };
+    });
 
-    document.getElementById('copyBtn').onclick = () => {
+    document.getElementById('copyBtn').addEventListener('click', () => {
       if (!lastOutput) return alert('No results to copy yet.');
-      navigator.clipboard.writeText(lastOutput).then(() => {
-        alert('Results copied to clipboard!');
-      }).catch(err => {
-        alert('Failed to copy results.');
-        console.error(err);
-      });
-    };
+      navigator.clipboard.writeText(lastOutput)
+        .then(() => alert('Results copied to clipboard!'))
+        .catch(err => {
+          alert('Failed to copy results.');
+          console.error(err);
+        });
+    });
   </script>
 </body>
 </html>
+
 
 
 

@@ -7,86 +7,54 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-6">
-  <header class="flex items-center justify-between mb-8">
-    <a href="index.html" class="text-xl font-bold text-teal-300 hover:text-teal-400">Pivot</a>
-    <div class="text-right">
-      <h1 class="text-3xl font-bold text-teal-300">Job Decoder</h1>
-      <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
-    </div>
+  <header class="mb-8 text-center">
+    <a href="index.html" class="text-3xl font-bold text-teal-300 hover:text-teal-400 block">Pivot</a>
+    <h1 class="text-3xl font-bold text-teal-300 mt-4">Job Decoder</h1>
+    <p class="text-gray-400">Paste a job description to get resume alignment, missing skills, and prep tips.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
-
     <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
     <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
-
     <div class="flex items-center mb-4">
       <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Decode Job</button>
-      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Results</button>
+      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-2 hidden">Copy Results</button>
     </div>
-
-    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
-
   <script>
     let lastOutput = '';
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const resume = localStorage.getItem('resumeText') || '';
+    window.onload = () => {
+      const resume = localStorage.getItem('resumeText');
       if (!resume) {
-        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+        alert('⚠️ You must upload a resume on the home page before using this tool.');
       }
-    });
+    };
 
-    document.getElementById('decodeBtn').addEventListener('click', async () => {
-      const resume = localStorage.getItem('resumeText') || '';
-      const job = document.getElementById('jobDesc').value.trim();
-
+    document.getElementById('decodeBtn').onclick = async () => {
+      const resume = localStorage.getItem('resumeText');
       if (!resume) {
-        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+        alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
         return;
       }
-
-      if (!job) {
-        alert('⚠️ Please paste a job description.');
-        return;
-      }
-
-      const maxChars = 6000;
-      const trimmedResume = resume.slice(0, maxChars);
-      const trimmedJob = job.slice(0, maxChars);
-
+      const job = document.getElementById('jobDesc').value;
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
-      output.textContent = 'Analyzing...';
+
+      output.innerHTML = 'Thinking...';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
-
-      const prompt = `You're a hiring strategist. Compare the resume below to this job description and respond with:
-
-1. Resume-to-job alignment score (0–100)
-2. Strongest matching sections from resume
-3. Gaps or weaknesses
-4. One specific change to improve resume
-5. One smart interview prep tip based on the job
-
-Resume: ${trimmedResume}
-
-Job: ${trimmedJob}`;
 
       try {
         const res = await fetch('/api/gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({
+            prompt: `You're a hiring strategist. Compare the resume below to this job description and respond with:\n\n1. Resume-to-job alignment score (0–100)\n2. Strongest matching sections from resume\n3. Gaps or weaknesses\n4. One specific change to improve resume\n5. One smart interview prep tip based on the job\n\nResume: ${resume}\n\nJob: ${job}`
+          })
         });
 
         const data = await res.json();
-        if (data.error) {
-          output.innerHTML = `<p class="text-red-500">Error: ${data.error}</p>`;
-          return;
-        }
-
         if (data.output) {
           lastOutput = data.output;
           output.innerHTML = data.output.replace(/\n/g, '<br>');
@@ -95,23 +63,24 @@ Job: ${trimmedJob}`;
           output.innerHTML = '<p class="text-red-500">No output returned. Please try again.</p>';
         }
       } catch (err) {
-        output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
-        console.error('Fetch Error:', err);
+        output.innerHTML = '<p class="text-red-500">An error occurred. Please try again later.</p>';
+        console.error(err);
       }
-    });
+    };
 
-    document.getElementById('copyBtn').addEventListener('click', () => {
+    document.getElementById('copyBtn').onclick = () => {
       if (!lastOutput) return alert('No results to copy yet.');
-      navigator.clipboard.writeText(lastOutput)
-        .then(() => alert('Results copied to clipboard!'))
-        .catch(err => {
-          alert('Failed to copy results.');
-          console.error('Clipboard error:', err);
-        });
-    });
+      navigator.clipboard.writeText(lastOutput).then(() => {
+        alert('Results copied to clipboard!');
+      }).catch(err => {
+        alert('Failed to copy results.');
+        console.error(err);
+      });
+    };
   </script>
 </body>
 </html>
+
 
 
 

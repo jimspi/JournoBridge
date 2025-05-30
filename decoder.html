@@ -21,21 +21,19 @@
   <script>
     let lastOutput = '';
 
-    window.onload = () => {
-      const resume = localStorage.getItem('resumeText');
-      if (!resume) {
-        alert('⚠️ You must upload a resume on the home page before using this tool.');
-      }
-    };
-
     document.getElementById('decodeBtn').onclick = async () => {
       const resume = localStorage.getItem('resumeText');
       if (!resume) {
         alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
         return;
       }
-      const resume = localStorage.getItem('resumeText');
+
       const job = document.getElementById('jobDesc').value;
+      if (!job) {
+        alert('Please paste a job description before decoding.');
+        return;
+      }
+
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
 
@@ -71,7 +69,7 @@ Job: ${job}`
           output.innerHTML = '<p class="text-red-500">No output returned. Please try again.</p>';
         }
       } catch (err) {
-        output.innerHTML = '<p class="text-red-500">An error occurred. Please try again later.</p>';
+        output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
         console.error(err);
       }
     };
@@ -88,5 +86,6 @@ Job: ${job}`
   </script>
 </body>
 </html>
+
 
 

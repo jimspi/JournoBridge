@@ -1,10 +1,8 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST requests are allowed' });
+    return res.status(405).json({ error: 'Only POST allowed' });
   }
-
   const { prompt } = req.body;
-
   if (!prompt || typeof prompt !== 'string') {
     return res.status(400).json({ error: 'Missing or invalid prompt' });
   }
@@ -14,38 +12,38 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: 'You are a helpful AI assistant for job seekers.' },
-          { role: 'user', content: prompt },
+          { role: 'user',   content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 1200,
-      }),
+        max_tokens: 1200
+      })
     });
 
     const data = await response.json();
-
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: `OpenAI error: ${data.error?.message || 'Unknown error'}`,
-      });
+      console.error('OpenAI error:', data);
+      return res.status(response.status).json({ error: data.error?.message || 'OpenAI error' });
     }
 
     const output = data.choices?.[0]?.message?.content;
     if (!output) {
-      return res.status(502).json({ error: 'No content in OpenAI response', raw: data });
+      console.error('No content from OpenAI:', data);
+      return res.status(502).json({ error: 'Empty response from OpenAI' });
     }
 
     return res.status(200).json({ output });
   } catch (err) {
-    console.error('GPT API error:', err);
+    console.error('GPT API catch:', err);
     return res.status(500).json({ error: 'Internal server error', detail: err.message });
   }
 }
+
 
 
 

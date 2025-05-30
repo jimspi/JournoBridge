@@ -1,3 +1,4 @@
+<!-- Skill Translator -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,9 +16,12 @@
     <label class="block mb-2 text-teal-200">Target Role Type (e.g., remote, nonprofit, startup):</label>
     <input type="text" id="targetType" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
     <button id="translateBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Find Matching Roles</button>
+    <button id="emailBtn" class="bg-blue-600 px-6 py-2 rounded hover:bg-blue-500 mb-4 ml-2">Email Results</button>
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
   <script>
+    let lastOutput = '';
+
     document.getElementById('translateBtn').onclick = async () => {
       const resume = localStorage.getItem('resumeText');
       const type = document.getElementById('targetType').value;
@@ -46,9 +50,8 @@ Recommended Job Titles:
       const data = await res.json();
       const output = document.getElementById('output');
       output.classList.remove('hidden');
-      const parts = data.output.split(/\n{2,}/); // split into sections
-
-      output.innerHTML = parts.map(section => {
+      const parts = data.output.split(/\n{2,}/);
+      lastOutput = parts.map(section => {
         if (section.startsWith('Resume Feedback:')) {
           return `<div class='mb-6'><strong>Resume Feedback</strong><br>${section.replace('Resume Feedback:', '').trim().split('\n').map(line => `• ${line.trim()}`).join('<br>')}</div>`;
         } else if (section.startsWith('Recommended Job Titles:')) {
@@ -64,6 +67,13 @@ Recommended Job Titles:
         }
         return `<div>${section}</div>`;
       }).join('');
+
+      output.innerHTML = lastOutput;
+    };
+
+    document.getElementById('emailBtn').onclick = () => {
+      const emailBody = encodeURIComponent(lastOutput.replace(/<[^>]+>/g, ''));
+      window.location.href = `mailto:?subject=My%20AI-Generated%20Job%20Matches&body=${emailBody}`;
     };
   </script>
 </body>

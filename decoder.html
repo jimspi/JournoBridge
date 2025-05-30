@@ -12,6 +12,7 @@
     <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
   </header>
   <main class="max-w-3xl mx-auto">
+    <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
     <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
     <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500 mb-4">Decode Job</button>
     <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4 ml-2 hidden">Copy Results</button>
@@ -28,6 +29,11 @@
     };
 
     document.getElementById('decodeBtn').onclick = async () => {
+      const resume = localStorage.getItem('resumeText');
+      if (!resume) {
+        alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
+        return;
+      }
       const resume = localStorage.getItem('resumeText');
       const job = document.getElementById('jobDesc').value;
       const output = document.getElementById('output');
@@ -82,4 +88,5 @@ Job: ${job}`
   </script>
 </body>
 </html>
+
 

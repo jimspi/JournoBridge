@@ -1,4 +1,3 @@
-<!-- Job Decoder FIXED with Resume Check and Copy Button -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,7 +23,7 @@
   <script>
     let lastOutput = '';
 
-    // Ensure resume exists
+    // Resume presence check on load
     window.addEventListener('DOMContentLoaded', () => {
       const resume = localStorage.getItem('resumeText');
       if (!resume) {
@@ -51,22 +50,28 @@
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
 
+      // Build prompt
+      const promptText = `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n` +
+                         `1. Resume-to-job alignment score (0–100)\n` +
+                         `2. Top matching resume sections\n` +
+                         `3. Gaps or missing skills\n` +
+                         `4. One specific improvement suggestion\n` +
+                         `5. One interview tip based on the job\n\n` +
+                         `Resume:\n${resume}\n\nJob Description:\n${job}`;
+
       try {
         const res = await fetch('/api/gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n` +
-                    `1. Resume-to-job alignment score (0–100)\n` +
-                    `2. Top matching resume sections\n` +
-                    `3. Gaps or missing skills\n` +
-                    `4. One specific improvement suggestion\n` +
-                    `5. One interview tip based on the job\n\n` +
-                    `Resume:\n${resume}\n\nJob Description:\n${job}`
-          })
+          body: JSON.stringify({ prompt: promptText })
         });
 
         const data = await res.json();
+        if (data.error) {
+          output.innerHTML = `<p class="text-red-500">Error: ${data.error}</p>`;
+          return;
+        }
+
         if (data.output) {
           lastOutput = data.output;
           output.innerHTML = data.output.replace(/\n/g, '<br>');
@@ -76,7 +81,7 @@
         }
       } catch (err) {
         output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
-        console.error(err);
+        console.error('Fetch Error:', err);
       }
     });
 
@@ -86,12 +91,13 @@
         .then(() => alert('Results copied to clipboard!'))
         .catch(err => {
           alert('Failed to copy results.');
-          console.error(err);
+          console.error('Clipboard error:', err);
         });
     });
   </script>
 </body>
 </html>
+
 
 
 

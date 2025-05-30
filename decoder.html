@@ -13,7 +13,8 @@
   </header>
   <main class="max-w-3xl mx-auto">
     <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
-    <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
+    <textarea id="jobDesc" placeholder="Paste job description here (keep total input under 12,000 characters)..." class="w-full mb-2 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
+    <p id="charCount" class="text-sm text-gray-400 mb-4">0 characters</p>
     <div class="flex items-center mb-4">
       <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Decode Job</button>
       <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Results</button>
@@ -22,59 +23,46 @@
   </main>
   <script>
     let lastOutput = '';
-    const MAX_PROMPT_CHARS = 13000; // GPT-3.5 Turbo context safe zone
 
     window.addEventListener('DOMContentLoaded', () => {
-      const resume = localStorage.getItem('resumeText');
+      const resume = localStorage.getItem('resumeText') || '';
       if (!resume) {
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
       }
+      document.getElementById('charCount').textContent = `${resume.length} characters`; // init
+    });
+
+    document.getElementById('jobDesc').addEventListener('input', () => {
+      const resume = localStorage.getItem('resumeText') || '';
+      const job = document.getElementById('jobDesc').value;
+      document.getElementById('charCount').textContent = `${resume.length + job.length} total characters`;
     });
 
     document.getElementById('decodeBtn').addEventListener('click', async () => {
-      const resume = localStorage.getItem('resumeText');
+      const resume = localStorage.getItem('resumeText') || '';
+      const job = document.getElementById('jobDesc').value.trim();
+
       if (!resume) {
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
         return;
       }
-
-      const job = document.getElementById('jobDesc').value.trim();
       if (!job) {
         alert('Please paste a job description before decoding.');
         return;
       }
 
-      // Build the exact prompt sent to GPT
-      const promptText =
-`You're a hiring strategist. Compare the resume below to this job description and provide:
-
-1. Resume-to-job alignment score (0–100)
-2. Top matching resume sections
-3. Gaps or missing skills
-4. One specific improvement suggestion
-5. One interview tip based on the job
-
-Resume:
-${resume}
-
-Job Description:
-${job}`;
-
-      // Now check the prompt's true length
-      if (promptText.length > MAX_PROMPT_CHARS) {
-        alert(
-          `Your combined resume and job description (with instructions) is ${promptText.length} characters. ` +
-          `GPT-3.5 Turbo's safe max is ${MAX_PROMPT_CHARS}.\n\n` +
-          `Please shorten your resume and/or job description.`
-        );
-        return;
-      }
+      // Truncate to avoid token limits
+      const maxChars = 6000;
+      const trimmedResume = resume.slice(0, maxChars);
+      const trimmedJob = job.slice(0, maxChars);
 
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
       output.textContent = 'Thinking...';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
+
+      const promptText = `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n1. Resume-to-job alignment score (0–100)\n2. Top matching resume sections\n3. Gaps or missing skills\n4. One specific improvement suggestion\n5. One interview tip based on the job\n\nResume:\n${trimmedResume}\n\nJob Description:\n${trimmedJob}`;
 
       try {
         const res = await fetch('/api/gpt', {
@@ -114,6 +102,7 @@ ${job}`;
   </script>
 </body>
 </html>
+
 
 
 

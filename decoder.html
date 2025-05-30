@@ -22,8 +22,8 @@
   </main>
   <script>
     let lastOutput = '';
+    const MAX_CHARS = 11000; // keep under GPT-3.5 Turbo's token limit
 
-    // Resume presence check on load
     window.addEventListener('DOMContentLoaded', () => {
       const resume = localStorage.getItem('resumeText');
       if (!resume) {
@@ -37,10 +37,18 @@
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
         return;
       }
+      if (resume.length > MAX_CHARS) {
+        alert('Your resume is too long for AI analysis. Please shorten it to under 11,000 characters.');
+        return;
+      }
 
       const job = document.getElementById('jobDesc').value.trim();
       if (!job) {
         alert('Please paste a job description before decoding.');
+        return;
+      }
+      if (job.length > MAX_CHARS) {
+        alert('Job description is too long. Please shorten it to under 11,000 characters.');
         return;
       }
 
@@ -50,7 +58,6 @@
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
 
-      // Build prompt
       const promptText = `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n` +
                          `1. Resume-to-job alignment score (0–100)\n` +
                          `2. Top matching resume sections\n` +
@@ -97,6 +104,7 @@
   </script>
 </body>
 </html>
+
 
 
 

@@ -9,29 +9,37 @@
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="text-center mb-8">
     <h1 class="text-3xl font-bold text-teal-300">Skill Translator</h1>
-    <p class="text-gray-400">Turn your past experience into recruiter-attracting bullet points.</p>
+    <p class="text-gray-400">Get matched with real job titles based on your resume — plus one-click searches on LinkedIn and Indeed.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <label class="block mb-2 text-teal-200">Target Job Title:</label>
-    <input type="text" id="targetTitle" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
-    <button id="translateBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Translate My Resume</button>
-    <pre id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap break-words"></pre>
+    <label class="block mb-2 text-teal-200">Target Role Type (e.g., remote, nonprofit, startup):</label>
+    <input type="text" id="targetType" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
+    <button id="translateBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Find Matching Roles</button>
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
   <script>
     document.getElementById('translateBtn').onclick = async () => {
       const resume = localStorage.getItem('resumeText');
-      const target = document.getElementById('targetTitle').value;
+      const type = document.getElementById('targetType').value;
       const res = await fetch('/api/gpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Rewrite this resume for a ${target} position using bullet points tailored to that job. Suggest 3 related job titles the user should explore.`
+          prompt: `You're a career coach. Read the resume and recommend 3 highly relevant job titles in the ${type} space, based on specific skills or achievements. For each, explain the alignment in one sentence. Format: \n\n- [Job Title]: [Explanation]`
         })
       });
       const data = await res.json();
-      const outputDiv = document.getElementById('output');
-      outputDiv.classList.remove('hidden');
-      outputDiv.textContent = data.output;
+      const output = document.getElementById('output');
+      output.classList.remove('hidden');
+      const lines = data.output.split('\n').filter(line => line.trim().startsWith('- '));
+      output.innerHTML = lines.map(line => {
+        const title = line.replace(/^- /, '').split(':')[0].trim();
+        const explanation = line.split(':').slice(1).join(':').trim();
+        const keyword = encodeURIComponent(title);
+        return `<div><strong>${title}</strong>: ${explanation}<br>
+          <a href='https://www.linkedin.com/jobs/search/?keywords=${keyword}' target='_blank' class='underline text-teal-300'>Search on LinkedIn</a> | 
+          <a href='https://www.indeed.com/jobs?q=${keyword}' target='_blank' class='underline text-teal-300'>Search on Indeed</a></div>`;
+      }).join('');
     };
   </script>
 </body>

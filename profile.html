@@ -3,30 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Career Profile Builder</title>
+  <title>Job Decoder</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="mb-8 text-center">
     <a href="index.html" class="text-3xl font-bold text-teal-300 hover:text-teal-400 block">Pivot</a>
-    <h1 class="text-3xl font-bold text-teal-300 mt-4">Career Profile Builder</h1>
-    <p class="text-gray-400">We’ll transform your resume into a modern, marketable career profile.</p>
+    <h1 class="text-3xl font-bold text-teal-300 mt-4">Job Decoder</h1>
+    <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <label for="targetRole" class="block mb-2 text-teal-300 font-semibold">Target Job Role (optional)</label>
-    <select id="targetRole" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
-      <option value="">Select or enter a role</option>
-      <option>Director of Strategic Communications</option>
-      <option>Public Affairs Specialist</option>
-      <option>Digital Media Manager</option>
-      <option>Marketing Communications Lead</option>
-      <option>Corporate Communications Manager</option>
-      <option value="custom">Other (enter below)</option>
-    </select>
-    <input id="customRole" placeholder="Enter custom job title" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500 hidden" />
+    <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
+    <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
     <div class="flex items-center mb-4">
-      <button id="buildBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Build Profile</button>
-      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-2 hidden">Copy Profile</button>
+      <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Decode Job</button>
+      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-2 hidden">Copy Results</button>
     </div>
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
@@ -40,38 +31,32 @@
       }
     };
 
-    document.getElementById('targetRole').addEventListener('change', (e) => {
-      document.getElementById('customRole').classList.toggle('hidden', e.target.value !== 'custom');
-    });
-
-    document.getElementById('buildBtn').onclick = async () => {
+    document.getElementById('decodeBtn').onclick = async () => {
       let resume = localStorage.getItem('resumeText');
       if (!resume) {
         alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
         return;
       }
 
-      const selectedRole = document.getElementById('targetRole').value;
-      const customRole = document.getElementById('customRole').value;
-      const role = selectedRole === 'custom' ? customRole : selectedRole;
+      const job = document.getElementById('jobDesc').value;
 
-      let basePrompt = `Using the resume below, generate a strong professional career profile tailored to this role: ${role || 'N/A'}.
+      let basePrompt = `You're a hiring strategist. Compare the resume below to this job description and respond with:
 
-Respond with:
-1. A professional summary (3–5 sentences)
-2. A list of key skills (8–10)
-3. Recommended certifications or courses to strengthen the resume for this role.
+1. Resume-to-job alignment score (0–100)
+2. Strongest matching sections from resume
+3. Gaps or weaknesses
+4. One specific change to improve resume
+5. One smart interview prep tip based on the job
 
 Resume: `;
 
-      let fullPrompt = basePrompt + resume;
+      let fullPrompt = basePrompt + resume + "\n\nJob: " + job;
 
-      // Trim if over token-safe character count
       let wasTrimmed = false;
       if (fullPrompt.length > 11000) {
-        const maxResumeLength = 11000 - basePrompt.length;
+        const maxResumeLength = 11000 - basePrompt.length - job.length;
         resume = resume.substring(0, maxResumeLength);
-        fullPrompt = basePrompt + resume;
+        fullPrompt = basePrompt + resume + "\n\nJob: " + job;
         wasTrimmed = true;
       }
 
@@ -80,8 +65,7 @@ Resume: `;
       output.innerHTML = wasTrimmed ? '<p class="text-yellow-400 mb-2">⚠️ Resume was trimmed due to length. Result may be abbreviated.</p>' : '';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
-
-      output.innerHTML += 'Building...';
+      output.innerHTML += 'Thinking...';
 
       try {
         const res = await fetch('/api/gpt', {
@@ -105,17 +89,18 @@ Resume: `;
     };
 
     document.getElementById('copyBtn').onclick = () => {
-      if (!lastOutput) return alert('No profile to copy yet.');
+      if (!lastOutput) return alert('No results to copy yet.');
       navigator.clipboard.writeText(lastOutput).then(() => {
-        alert('Profile copied to clipboard!');
+        alert('Results copied to clipboard!');
       }).catch(err => {
-        alert('Failed to copy profile.');
+        alert('Failed to copy results.');
         console.error(err);
       });
     };
   </script>
 </body>
 </html>
+
 
 
 

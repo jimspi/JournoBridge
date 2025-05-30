@@ -1,4 +1,3 @@
-<!-- Skill Translator -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,10 +12,10 @@
     <p class="text-gray-400">Get matched with real job titles based on your resume — plus what to add, learn, or fix to improve your chances.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <label class="block mb-2 text-teal-200">Target Role Type (e.g., remote, nonprofit, startup):</label>
+    <label class="block mb-2 text-teal-200">Target Role Type (e.g., PR communications, nonprofit, crisis management):</label>
     <input type="text" id="targetType" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
-    <button id="translateBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Find Matching Roles</button>
-    <button id="emailBtn" class="bg-blue-600 px-6 py-2 rounded hover:bg-blue-500 mb-4 ml-2">Email Results</button>
+    <button id="translateBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500 mb-4">Find Matching Roles</button>
+    <button id="emailBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4 ml-2 hidden">Email Results</button>
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
   <script>
@@ -44,34 +43,23 @@ Resume Feedback:
 - [bullet points about resume issues or improvements]
 
 Recommended Job Titles:
-- Job Title: Explanation. Recommended improvement. Suggested course and provider with link.`
+- Job Title: Explanation. Recommended improvement. Suggested course and provider with full hyperlink.`
         })
       });
       const data = await res.json();
       const output = document.getElementById('output');
+      const emailBtn = document.getElementById('emailBtn');
       output.classList.remove('hidden');
-      const parts = data.output.split(/\n{2,}/);
-      lastOutput = parts.map(section => {
-        if (section.startsWith('Resume Feedback:')) {
-          return `<div class='mb-6'><strong>Resume Feedback</strong><br>${section.replace('Resume Feedback:', '').trim().split('\n').map(line => `• ${line.trim()}`).join('<br>')}</div>`;
-        } else if (section.startsWith('Recommended Job Titles:')) {
-          const lines = section.replace('Recommended Job Titles:', '').trim().split('\n').filter(line => line.startsWith('-'));
-          return `<div><strong>Recommended Job Titles</strong><br>` +
-            lines.map(line => {
-              const title = line.replace(/^- /, '').split(':')[0].trim();
-              const keyword = encodeURIComponent(title);
-              return `<div class='mb-4'><strong>${title}</strong>: ${line.split(':').slice(1).join(':').trim()}<br>
-                <a href='https://www.linkedin.com/jobs/search/?keywords=${keyword}' target='_blank' class='underline text-teal-300'>Search on LinkedIn</a> | 
-                <a href='https://www.indeed.com/jobs?q=${keyword}' target='_blank' class='underline text-teal-300'>Search on Indeed</a></div>`;
-            }).join('') + `</div>`;
-        }
-        return `<div>${section}</div>`;
-      }).join('');
+      emailBtn.classList.remove('hidden');
 
-      output.innerHTML = lastOutput;
+      // Convert any URLs into clickable links
+      const withLinks = data.output.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="underline text-blue-400">$1</a>');
+      output.innerHTML = withLinks.replace(/\n/g, '<br>');
+      lastOutput = withLinks;
     };
 
     document.getElementById('emailBtn').onclick = () => {
+      if (!lastOutput) return alert('No results to email yet.');
       const emailBody = encodeURIComponent(lastOutput.replace(/<[^>]+>/g, ''));
       window.location.href = `mailto:?subject=My%20AI-Generated%20Job%20Matches&body=${emailBody}`;
     };

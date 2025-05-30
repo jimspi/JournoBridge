@@ -51,9 +51,26 @@
         alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
         return;
       }
+
       const selectedRole = document.getElementById('targetRole').value;
       const customRole = document.getElementById('customRole').value;
       const role = selectedRole === 'custom' ? customRole : selectedRole;
+
+      const fullPrompt = `Using the resume below, generate a strong professional career profile tailored to this role: ${role || 'N/A'}.
+
+Respond with:
+1. A professional summary (3–5 sentences)
+2. A list of key skills (8–10)
+3. Recommended certifications or courses to strengthen the resume for this role.
+
+Resume: ${resume}`;
+
+      if (fullPrompt.length > 11000) {
+        document.getElementById('output').innerHTML = '<p class="text-red-500">Your resume and input are too long. Please shorten to under 11,000 characters total.</p>';
+        document.getElementById('output').classList.remove('hidden');
+        return;
+      }
+
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
 
@@ -65,16 +82,7 @@
         const res = await fetch('/api/gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: `Using the resume below, generate a strong professional career profile tailored to this role: ${role || 'N/A'}.
-
-Respond with:
-1. A professional summary (3–5 sentences)
-2. A list of key skills (8–10)
-3. Recommended certifications or courses to strengthen the resume for this role.
-
-Resume: ${resume}`
-          })
+          body: JSON.stringify({ prompt: fullPrompt })
         });
 
         const data = await res.json();
@@ -103,6 +111,7 @@ Resume: ${resume}`
   </script>
 </body>
 </html>
+
 
 
 

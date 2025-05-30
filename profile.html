@@ -7,29 +7,51 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-6">
-  <header class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-teal-300">Career Profile Builder</h1>
-    <p class="text-gray-400">We’ll transform your resume into a modern, marketable career profile.</p>
+  <header class="flex justify-between items-center mb-8">
+    <a href="/" class="flex items-center space-x-2">
+      <img src="/pivot-logo.png" alt="Pivot Logo" class="h-10 w-10" />
+      <span class="text-teal-300 text-2xl font-bold">Pivot</span>
+    </a>
+    <div class="text-center w-full">
+      <h1 class="text-3xl font-bold text-teal-300">Career Profile Builder</h1>
+      <p class="text-gray-400">Let’s shape your resume into a personalized, marketable career narrative aligned with your goals.</p>
+    </div>
   </header>
   <main class="max-w-3xl mx-auto">
-    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
+    <p class="text-sm text-gray-400 mb-4">Resume is pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
+
     <div class="mb-4">
-      <label for="jobRole" class="block text-teal-300 font-semibold mb-1">Target Job Role (optional)</label>
-      <select id="jobRole" class="w-full p-2 rounded bg-gray-800 border border-teal-500 text-white">
+      <label for="jobRole" class="block text-teal-300 font-semibold mb-1">Target Job Role</label>
+      <select id="jobRole" class="w-full p-2 rounded bg-gray-800 border border-teal-500 text-white mb-2">
         <option value="">-- Select a Role --</option>
         <option>Director of Strategic Communications</option>
         <option>Public Relations Manager</option>
         <option>Digital Content Lead</option>
         <option>Media Relations Specialist</option>
         <option>Corporate Communications Director</option>
+        <option>Marketing and Engagement Strategist</option>
+        <option>AI Communications Consultant</option>
+        <option>Creative Campaign Manager</option>
+        <option>Reputation and Brand Strategist</option>
+        <option>Training and Development Lead</option>
+        <option>Director of Storytelling</option>
+        <option>Speechwriter</option>
+        <option>Community Relations Advisor</option>
+        <option>Internal Communications Lead</option>
+        <option>Communications Strategist</option>
+        <option>Content Marketing Manager</option>
+        <option>Media Coach</option>
       </select>
+      <input id="customRole" placeholder="Or type your own role..." class="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white" />
     </div>
+
     <div class="flex items-center mb-4">
       <button id="buildBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Build Profile</button>
       <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Profile</button>
     </div>
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
   </main>
+
   <script>
     let lastOutput = '';
 
@@ -42,7 +64,9 @@
 
     document.getElementById('buildBtn').addEventListener('click', async () => {
       const resume = localStorage.getItem('resumeText') || '';
-      const jobRole = document.getElementById('jobRole').value;
+      const dropdown = document.getElementById('jobRole').value;
+      const manual = document.getElementById('customRole').value.trim();
+      const jobRole = manual || dropdown;
 
       if (!resume) {
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
@@ -58,7 +82,7 @@
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
 
-      const promptText = `You are a top-tier career strategist and resume branding expert.\n\nGiven this resume content, build a customized career summary written in a confident, achievement-oriented tone.\n\nIf applicable, align it with the role: ${jobRole || '[none specified]'}.\n\nThen:\n- Extract key skills as bullet points\n- Recommend certifications or courses that would make this resume more competitive (include real names and sources like Coursera, LinkedIn Learning, etc.)\n\nResume:\n${trimmedResume}`;
+      const promptText = `You are a top-tier career strategist and resume branding expert.\n\nUsing the resume content below, craft a modern, confident career summary aligned with the role: ${jobRole || '[not specified]'}.\n\nFollow with:\n- 8-10 key skills in bullet form\n- Recommend 3-5 certifications or courses with real titles and platforms\n- Identify one potential improvement to the resume\n\nResume:\n${trimmedResume}`;
 
       try {
         const res = await fetch('/api/gpt', {

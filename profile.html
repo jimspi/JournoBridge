@@ -11,42 +11,32 @@
     <a href="index.html" class="text-xl font-bold text-teal-300 hover:text-teal-400">Pivot</a>
     <div class="text-right">
       <h1 class="text-3xl font-bold text-teal-300">Career Profile Builder</h1>
-      <p class="text-gray-400">Let’s shape your resume into a personalized, marketable career narrative aligned with your goals.</p>
+      <p class="text-gray-400">We’ll transform your resume into a modern, marketable career profile.</p>
     </div>
   </header>
   <main class="max-w-3xl mx-auto">
-    <p class="text-sm text-gray-400 mb-4">Resume is pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
+    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
 
-    <div class="mb-4">
-      <label for="jobRole" class="block text-teal-300 font-semibold mb-1">Target Job Role</label>
-      <select id="jobRole" class="w-full p-2 rounded bg-gray-800 border border-teal-500 text-white mb-2">
-        <option value="">-- Select a Role --</option>
-        <option>Director of Strategic Communications</option>
-        <option>Public Relations Manager</option>
-        <option>Digital Content Lead</option>
-        <option>Media Relations Specialist</option>
-        <option>Corporate Communications Director</option>
-        <option>Marketing and Engagement Strategist</option>
-        <option>AI Communications Consultant</option>
-        <option>Creative Campaign Manager</option>
-        <option>Reputation and Brand Strategist</option>
-        <option>Training and Development Lead</option>
-        <option>Director of Storytelling</option>
-        <option>Speechwriter</option>
-        <option>Community Relations Advisor</option>
-        <option>Internal Communications Lead</option>
-        <option>Communications Strategist</option>
-        <option>Content Marketing Manager</option>
-        <option>Media Coach</option>
-        <option>Other</option>
-      </select>
-      <input id="customRole" placeholder="Or type your own role..." class="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white" />
-    </div>
+    <label for="targetRole" class="block mb-2 text-teal-300 font-semibold">Target Job Role (optional)</label>
+    <select id="targetRole" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
+      <option value="">Select a role or type your own</option>
+      <option>Director of Strategic Communications</option>
+      <option>Marketing Manager</option>
+      <option>Public Relations Specialist</option>
+      <option>Corporate Communications Lead</option>
+      <option>Media Consultant</option>
+      <option>Chief Content Officer</option>
+      <option>AI Communication Strategist</option>
+      <option value="other">Other (type below)</option>
+    </select>
+
+    <input id="customRole" placeholder="Enter custom job title here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-gray-600" />
 
     <div class="flex items-center mb-4">
       <button id="buildBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Build Profile</button>
       <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Profile</button>
     </div>
+
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
   </main>
 
@@ -62,31 +52,38 @@
 
     document.getElementById('buildBtn').addEventListener('click', async () => {
       const resume = localStorage.getItem('resumeText') || '';
-      const dropdown = document.getElementById('jobRole').value;
-      const manual = document.getElementById('customRole').value.trim();
-      const jobRole = manual || dropdown;
+      const selectedRole = document.getElementById('targetRole').value;
+      const customRole = document.getElementById('customRole').value.trim();
+      const target = selectedRole === 'other' ? customRole : selectedRole;
 
       if (!resume) {
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
         return;
       }
 
-      const maxChars = 6000;
+      const maxChars = 12000;
       const trimmedResume = resume.slice(0, maxChars);
-
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
-      output.textContent = 'Creating profile...';
+
+      output.textContent = 'Creating your profile...';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
 
-      const promptText = `You are a top-tier career strategist and resume branding expert.\n\nUsing the resume content below, craft a modern, confident career summary aligned with the role: ${jobRole || '[not specified]'}.\n\nFollow with:\n- 8-10 key skills in bullet form\n- Recommend 3-5 certifications or courses with real titles and platforms\n- Identify one potential improvement to the resume\n\nResume:\n${trimmedResume}`;
+      const prompt = `You're a professional resume strategist. Based on the resume below, create a high-impact modern career profile tailored for someone targeting the role of ${target || 'communications professional'}. Include:
+
+1. A polished career summary paragraph that highlights strengths, leadership, and measurable impact
+2. A list of key skills relevant to the target role
+3. Recommended certifications or courses that would strengthen this resume further
+
+Resume:
+${trimmedResume}`;
 
       try {
         const res = await fetch('/api/gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: promptText })
+          body: JSON.stringify({ prompt })
         });
 
         const data = await res.json();
@@ -120,6 +117,7 @@
   </script>
 </body>
 </html>
+
 
 
 

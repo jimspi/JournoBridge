@@ -41,12 +41,11 @@
     };
 
     document.getElementById('targetRole').addEventListener('change', (e) => {
-      const customInput = document.getElementById('customRole');
-      customInput.classList.toggle('hidden', e.target.value !== 'custom');
+      document.getElementById('customRole').classList.toggle('hidden', e.target.value !== 'custom');
     });
 
     document.getElementById('buildBtn').onclick = async () => {
-      const resume = localStorage.getItem('resumeText');
+      let resume = localStorage.getItem('resumeText');
       if (!resume) {
         alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
         return;
@@ -56,27 +55,33 @@
       const customRole = document.getElementById('customRole').value;
       const role = selectedRole === 'custom' ? customRole : selectedRole;
 
-      const fullPrompt = `Using the resume below, generate a strong professional career profile tailored to this role: ${role || 'N/A'}.
+      let basePrompt = `Using the resume below, generate a strong professional career profile tailored to this role: ${role || 'N/A'}.
 
 Respond with:
 1. A professional summary (3–5 sentences)
 2. A list of key skills (8–10)
 3. Recommended certifications or courses to strengthen the resume for this role.
 
-Resume: ${resume}`;
+Resume: `;
 
+      let fullPrompt = basePrompt + resume;
+
+      // Trim if over token-safe character count
+      let wasTrimmed = false;
       if (fullPrompt.length > 11000) {
-        document.getElementById('output').innerHTML = '<p class="text-red-500">Your resume and input are too long. Please shorten to under 11,000 characters total.</p>';
-        document.getElementById('output').classList.remove('hidden');
-        return;
+        const maxResumeLength = 11000 - basePrompt.length;
+        resume = resume.substring(0, maxResumeLength);
+        fullPrompt = basePrompt + resume;
+        wasTrimmed = true;
       }
 
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
-
-      output.innerHTML = 'Building...';
+      output.innerHTML = wasTrimmed ? '<p class="text-yellow-400 mb-2">⚠️ Resume was trimmed due to length. Result may be abbreviated.</p>' : '';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
+
+      output.innerHTML += 'Building...';
 
       try {
         const res = await fetch('/api/gpt', {
@@ -111,6 +116,7 @@ Resume: ${resume}`;
   </script>
 </body>
 </html>
+
 
 
 

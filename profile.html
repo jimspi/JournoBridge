@@ -7,91 +7,77 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-6">
-  <header class="flex items-center justify-between mb-8">
-    <a href="index.html" class="text-xl font-bold text-teal-300 hover:text-teal-400">Pivot</a>
-    <div class="text-right">
-      <h1 class="text-3xl font-bold text-teal-300">Career Profile Builder</h1>
-      <p class="text-gray-400">We’ll transform your resume into a modern, marketable career profile.</p>
-    </div>
+  <header class="mb-8 text-center">
+    <a href="index.html" class="text-3xl font-bold text-teal-300 hover:text-teal-400 block">Pivot</a>
+    <h1 class="text-3xl font-bold text-teal-300 mt-4">Career Profile Builder</h1>
+    <p class="text-gray-400">We’ll transform your resume into a modern, marketable career profile.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
-
     <label for="targetRole" class="block mb-2 text-teal-300 font-semibold">Target Job Role (optional)</label>
     <select id="targetRole" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500">
-      <option value="">Select a role or type your own</option>
+      <option value="">Select or enter a role</option>
       <option>Director of Strategic Communications</option>
-      <option>Marketing Manager</option>
-      <option>Public Relations Specialist</option>
-      <option>Corporate Communications Lead</option>
-      <option>Media Consultant</option>
-      <option>Chief Content Officer</option>
-      <option>AI Communication Strategist</option>
-      <option value="other">Other (type below)</option>
+      <option>Public Affairs Specialist</option>
+      <option>Digital Media Manager</option>
+      <option>Marketing Communications Lead</option>
+      <option>Corporate Communications Manager</option>
+      <option value="custom">Other (enter below)</option>
     </select>
-
-    <input id="customRole" placeholder="Enter custom job title here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-gray-600" />
-
+    <input id="customRole" placeholder="Enter custom job title" class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500 hidden" />
     <div class="flex items-center mb-4">
       <button id="buildBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Build Profile</button>
-      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Profile</button>
+      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-2 hidden">Copy Profile</button>
     </div>
-
-    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
-
   <script>
     let lastOutput = '';
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const resume = localStorage.getItem('resumeText') || '';
+    window.onload = () => {
+      const resume = localStorage.getItem('resumeText');
       if (!resume) {
-        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+        alert('⚠️ You must upload a resume on the home page before using this tool.');
       }
+    };
+
+    document.getElementById('targetRole').addEventListener('change', (e) => {
+      const customInput = document.getElementById('customRole');
+      customInput.classList.toggle('hidden', e.target.value !== 'custom');
     });
 
-    document.getElementById('buildBtn').addEventListener('click', async () => {
-      const resume = localStorage.getItem('resumeText') || '';
-      const selectedRole = document.getElementById('targetRole').value;
-      const customRole = document.getElementById('customRole').value.trim();
-      const target = selectedRole === 'other' ? customRole : selectedRole;
-
+    document.getElementById('buildBtn').onclick = async () => {
+      const resume = localStorage.getItem('resumeText');
       if (!resume) {
-        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+        alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
         return;
       }
-
-      const maxChars = 12000;
-      const trimmedResume = resume.slice(0, maxChars);
+      const selectedRole = document.getElementById('targetRole').value;
+      const customRole = document.getElementById('customRole').value;
+      const role = selectedRole === 'custom' ? customRole : selectedRole;
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
 
-      output.textContent = 'Creating your profile...';
+      output.innerHTML = 'Building...';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
-
-      const prompt = `You're a professional resume strategist. Based on the resume below, create a high-impact modern career profile tailored for someone targeting the role of ${target || 'communications professional'}. Include:
-
-1. A polished career summary paragraph that highlights strengths, leadership, and measurable impact
-2. A list of key skills relevant to the target role
-3. Recommended certifications or courses that would strengthen this resume further
-
-Resume:
-${trimmedResume}`;
 
       try {
         const res = await fetch('/api/gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({
+            prompt: `Using the resume below, generate a strong professional career profile tailored to this role: ${role || 'N/A'}.
+
+Respond with:
+1. A professional summary (3–5 sentences)
+2. A list of key skills (8–10)
+3. Recommended certifications or courses to strengthen the resume for this role.
+
+Resume: ${resume}`
+          })
         });
 
         const data = await res.json();
-        if (data.error) {
-          output.innerHTML = `<p class="text-red-500">Error: ${data.error}</p>`;
-          return;
-        }
-
         if (data.output) {
           lastOutput = data.output;
           output.innerHTML = data.output.replace(/\n/g, '<br>');
@@ -100,23 +86,24 @@ ${trimmedResume}`;
           output.innerHTML = '<p class="text-red-500">No output returned. Please try again.</p>';
         }
       } catch (err) {
-        output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
-        console.error('Fetch Error:', err);
+        output.innerHTML = '<p class="text-red-500">An error occurred. Please try again later.</p>';
+        console.error(err);
       }
-    });
+    };
 
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      if (!lastOutput) return alert('No results to copy yet.');
-      navigator.clipboard.writeText(lastOutput)
-        .then(() => alert('Profile copied to clipboard!'))
-        .catch(err => {
-          alert('Failed to copy profile.');
-          console.error('Clipboard error:', err);
-        });
-    });
+    document.getElementById('copyBtn').onclick = () => {
+      if (!lastOutput) return alert('No profile to copy yet.');
+      navigator.clipboard.writeText(lastOutput).then(() => {
+        alert('Profile copied to clipboard!');
+      }).catch(err => {
+        alert('Failed to copy profile.');
+        console.error(err);
+      });
+    };
   </script>
 </body>
 </html>
+
 
 
 

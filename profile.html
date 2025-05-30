@@ -9,35 +9,47 @@
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="text-center mb-8">
     <h1 class="text-3xl font-bold text-teal-300">Career Profile Builder</h1>
-    <p class="text-gray-400">Get a standout About Me for LinkedIn or bios.</p>
+    <p class="text-gray-400">Use your resume to build a compelling About Me, a custom LinkedIn DM, and credibility content ideas that grab attention.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <label class="block mb-2 text-teal-200">Choose Tone:</label>
-    <select id="tone" class="mb-4 p-2 rounded bg-gray-800 text-white border border-teal-500">
-      <option value="professional">Professional</option>
-      <option value="creative">Creative</option>
-      <option value="confident">Confident</option>
-    </select>
-    <button id="buildBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Build My Profile</button>
-    <pre id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap break-words"></pre>
+    <button id="buildBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Build My Career Profile</button>
+    <button id="emailBtn" class="bg-blue-600 px-6 py-2 rounded hover:bg-blue-500 mb-4 ml-2">Email Results</button>
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
   <script>
+    let lastOutput = '';
+
     document.getElementById('buildBtn').onclick = async () => {
       const resume = localStorage.getItem('resumeText');
-      const tone = document.getElementById('tone').value;
       const res = await fetch('/api/gpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Using a ${tone} tone, write a strong 2-paragraph About Me and a LinkedIn headline that showcases this resume:\n\n${resume}`
+          prompt: `You're a professional career branding expert. Based on this resume:
+
+${resume}
+
+Generate:
+1. A modern and confident "About Me" section for LinkedIn
+2. A LinkedIn DM template that can be used for networking or job inquiries
+3. Three credibility content post prompts (e.g., lessons learned, leadership tips, industry insights)
+
+Use a conversational and professional tone. Output in labeled sections.`
         })
       });
       const data = await res.json();
-      const outputDiv = document.getElementById('output');
-      outputDiv.classList.remove('hidden');
-      outputDiv.textContent = data.output;
+      lastOutput = data.output;
+      const output = document.getElementById('output');
+      output.classList.remove('hidden');
+      output.innerHTML = data.output.replace(/\n/g, '<br>');
+    };
+
+    document.getElementById('emailBtn').onclick = () => {
+      const emailBody = encodeURIComponent(lastOutput.replace(/<[^>]+>/g, ''));
+      window.location.href = `mailto:?subject=Career%20Profile%20Builder%20Results&body=${emailBody}`;
     };
   </script>
 </body>
 </html>
+
 

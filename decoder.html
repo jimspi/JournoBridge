@@ -19,6 +19,14 @@
   </main>
   <script>
     let lastOutput = '';
+
+    window.onload = () => {
+      const resume = localStorage.getItem('resumeText');
+      if (!resume) {
+        alert('⚠️ You must upload a resume on the home page before using this tool.');
+      }
+    };
+
     document.getElementById('decodeBtn').onclick = async () => {
       const resume = localStorage.getItem('resumeText');
       const job = document.getElementById('jobDesc').value;

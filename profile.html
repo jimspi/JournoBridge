@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,46 +9,86 @@
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="text-center mb-8">
     <h1 class="text-3xl font-bold text-teal-300">Career Profile Builder</h1>
-    <p class="text-gray-400">Craft your About Me, outreach DMs, and post ideas to boost your credibility and network.</p>
+    <p class="text-gray-400">We’ll transform your resume into a modern, marketable career profile.</p>
   </header>
   <main class="max-w-3xl mx-auto">
-    <button id="buildBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500 mb-4">Build My Profile</button>
-    <button id="emailBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4 ml-2 hidden">Email Results</button>
-    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
+    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
+    <div class="flex items-center mb-4">
+      <button id="buildBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Build Profile</button>
+      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Profile</button>
+    </div>
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
   </main>
   <script>
     let lastOutput = '';
-    document.getElementById('buildBtn').onclick = async () => {
-      const resume = localStorage.getItem('resumeText');
-      const res = await fetch('/api/gpt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `You're a branding strategist. Based on this resume:
 
-${resume}
+    window.addEventListener('DOMContentLoaded', () => {
+      const resume = localStorage.getItem('resumeText') || '';
+      if (!resume) {
+        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+      }
+    });
 
-Generate:
-1. A confident "About Me" for LinkedIn
-2. A DM template for networking
-3. 3 credibility post prompts to build trust`
-        })
-      });
-      const data = await res.json();
-      lastOutput = data.output;
+    document.getElementById('buildBtn').addEventListener('click', async () => {
+      const resume = localStorage.getItem('resumeText') || '';
+
+      if (!resume) {
+        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
+        return;
+      }
+
+      const maxChars = 6000;
+      const trimmedResume = resume.slice(0, maxChars);
+
       const output = document.getElementById('output');
+      const copyBtn = document.getElementById('copyBtn');
+      output.textContent = 'Creating profile...';
       output.classList.remove('hidden');
-      output.innerHTML = data.output.replace(/\n/g, '<br>');
-      document.getElementById('emailBtn').classList.remove('hidden');
-    };
+      copyBtn.classList.add('hidden');
 
-    document.getElementById('emailBtn').onclick = () => {
-      if (!lastOutput) return alert('No results to email yet.');
-      const emailBody = encodeURIComponent(lastOutput.replace(/<[^>]+>/g, ''));
-      window.location.href = `mailto:?subject=Career%20Profile%20Results&body=${emailBody}`;
-    };
+      const promptText = `You're a career branding expert. Convert this resume into a professional career summary profile, optimized for LinkedIn and modern resumes. Use a tone that's confident, clear, and achievement-driven. Also suggest any obvious missing elements or certifications:
+
+Resume:
+${trimmedResume}`;
+
+      try {
+        const res = await fetch('/api/gpt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: promptText })
+        });
+
+        const data = await res.json();
+        if (data.error) {
+          output.innerHTML = `<p class="text-red-500">Error: ${data.error}</p>`;
+          return;
+        }
+
+        if (data.output) {
+          lastOutput = data.output;
+          output.innerHTML = data.output.replace(/\n/g, '<br>');
+          copyBtn.classList.remove('hidden');
+        } else {
+          output.innerHTML = '<p class="text-red-500">No output returned. Please try again.</p>';
+        }
+      } catch (err) {
+        output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
+        console.error('Fetch Error:', err);
+      }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      if (!lastOutput) return alert('No results to copy yet.');
+      navigator.clipboard.writeText(lastOutput)
+        .then(() => alert('Profile copied to clipboard!'))
+        .catch(err => {
+          alert('Failed to copy profile.');
+          console.error('Clipboard error:', err);
+        });
+    });
   </script>
 </body>
 </html>
+
 
 

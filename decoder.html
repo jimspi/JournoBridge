@@ -7,20 +7,27 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-6">
-  <header class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-teal-300">Job Decoder</h1>
-    <p class="text-gray-400">Paste a job description and we’ll decode it: alignment score, gaps, improvements, and interview tips.</p>
+  <header class="flex items-center justify-between mb-8">
+    <a href="index.html" class="text-xl font-bold text-teal-300 hover:text-teal-400">Pivot</a>
+    <div class="text-right">
+      <h1 class="text-3xl font-bold text-teal-300">Job Decoder</h1>
+      <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
+    </div>
   </header>
   <main class="max-w-3xl mx-auto">
+    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 12,000 characters for best results.</p>
+
     <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
-    <textarea id="jobDesc" placeholder="Paste job description here (keep total input under 12,000 characters)..." class="w-full mb-2 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
-    <p id="charCount" class="text-sm text-gray-400 mb-4">0 characters</p>
+    <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
+
     <div class="flex items-center mb-4">
       <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Decode Job</button>
       <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Results</button>
     </div>
+
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
   </main>
+
   <script>
     let lastOutput = '';
 
@@ -29,13 +36,6 @@
       if (!resume) {
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
       }
-      document.getElementById('charCount').textContent = `${resume.length} characters`; // init
-    });
-
-    document.getElementById('jobDesc').addEventListener('input', () => {
-      const resume = localStorage.getItem('resumeText') || '';
-      const job = document.getElementById('jobDesc').value;
-      document.getElementById('charCount').textContent = `${resume.length + job.length} total characters`;
     });
 
     document.getElementById('decodeBtn').addEventListener('click', async () => {
@@ -46,29 +46,39 @@
         alert('⚠️ No resume found. Please upload your resume on the homepage first.');
         return;
       }
+
       if (!job) {
-        alert('Please paste a job description before decoding.');
+        alert('⚠️ Please paste a job description.');
         return;
       }
 
-      // Truncate to avoid token limits
       const maxChars = 6000;
       const trimmedResume = resume.slice(0, maxChars);
       const trimmedJob = job.slice(0, maxChars);
 
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
-      output.textContent = 'Thinking...';
+      output.textContent = 'Analyzing...';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
 
-      const promptText = `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n1. Resume-to-job alignment score (0–100)\n2. Top matching resume sections\n3. Gaps or missing skills\n4. One specific improvement suggestion\n5. One interview tip based on the job\n\nResume:\n${trimmedResume}\n\nJob Description:\n${trimmedJob}`;
+      const prompt = `You're a hiring strategist. Compare the resume below to this job description and respond with:
+
+1. Resume-to-job alignment score (0–100)
+2. Strongest matching sections from resume
+3. Gaps or weaknesses
+4. One specific change to improve resume
+5. One smart interview prep tip based on the job
+
+Resume: ${trimmedResume}
+
+Job: ${trimmedJob}`;
 
       try {
         const res = await fetch('/api/gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: promptText })
+          body: JSON.stringify({ prompt })
         });
 
         const data = await res.json();
@@ -102,6 +112,7 @@
   </script>
 </body>
 </html>
+
 
 
 

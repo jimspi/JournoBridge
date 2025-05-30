@@ -9,17 +9,16 @@
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="text-center mb-8">
     <h1 class="text-3xl font-bold text-teal-300">Job Decoder</h1>
-    <p class="text-gray-400">Paste any job description below and we’ll break it down: alignment score, how well your resume fits, what to improve, and one solid interview prep tip.</p>
+    <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
   </header>
   <main class="max-w-3xl mx-auto">
     <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
-    <button id="decodeBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4">Decode Job</button>
-    <button id="emailBtn" class="bg-blue-600 px-6 py-2 rounded hover:bg-blue-500 mb-4 ml-2">Email Results</button>
+    <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500 mb-4">Decode Job</button>
+    <button id="emailBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 mb-4 ml-2 hidden">Email Results</button>
     <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
   </main>
   <script>
     let lastOutput = '';
-
     document.getElementById('decodeBtn').onclick = async () => {
       const resume = localStorage.getItem('resumeText');
       const job = document.getElementById('jobDesc').value;
@@ -27,15 +26,17 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `You're a career analyst. Given this resume: ${resume} and this job description: ${job}, evaluate:
+          prompt: `You're a hiring strategist. Compare the resume below to this job description and respond with:
 
 1. Resume-to-job alignment score (0–100)
-2. Which resume sections best match the job description
-3. What’s missing from the resume
-4. One concrete change to boost alignment
-5. One interview prep tip based on the job
+2. Strongest matching sections from resume
+3. Gaps or weaknesses
+4. One specific change to improve resume
+5. One smart interview prep tip based on the job
 
-Respond in readable bullet points with headers.`
+Resume: ${resume}
+
+Job: ${job}`
         })
       });
       const data = await res.json();
@@ -43,9 +44,11 @@ Respond in readable bullet points with headers.`
       const output = document.getElementById('output');
       output.classList.remove('hidden');
       output.innerHTML = data.output.replace(/\n/g, '<br>');
+      document.getElementById('emailBtn').classList.remove('hidden');
     };
 
     document.getElementById('emailBtn').onclick = () => {
+      if (!lastOutput) return alert('No results to email yet.');
       const emailBody = encodeURIComponent(lastOutput.replace(/<[^>]+>/g, ''));
       window.location.href = `mailto:?subject=Job%20Decoder%20Results&body=${emailBody}`;
     };

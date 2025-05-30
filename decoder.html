@@ -22,9 +22,8 @@
   </main>
   <script>
     let lastOutput = '';
-    const MAX_TOTAL_CHARS = 12000; // Adjust as needed to keep below token limit
+    const MAX_PROMPT_CHARS = 13000; // GPT-3.5 Turbo context safe zone
 
-    // Ensure resume exists
     window.addEventListener('DOMContentLoaded', () => {
       const resume = localStorage.getItem('resumeText');
       if (!resume) {
@@ -45,18 +44,29 @@
         return;
       }
 
-      // Build prompt
-      const promptText = `You're a hiring strategist. Compare the resume below to this job description and provide:\n\n` +
-                         `1. Resume-to-job alignment score (0–100)\n` +
-                         `2. Top matching resume sections\n` +
-                         `3. Gaps or missing skills\n` +
-                         `4. One specific improvement suggestion\n` +
-                         `5. One interview tip based on the job\n\n` +
-                         `Resume:\n${resume}\n\nJob Description:\n${job}`;
+      // Build the exact prompt sent to GPT
+      const promptText =
+`You're a hiring strategist. Compare the resume below to this job description and provide:
 
-      // Context/length check
-      if (promptText.length > MAX_TOTAL_CHARS) {
-        alert(`Your resume and job description combined are too long (${promptText.length} characters). Please shorten one or both to keep the total under ${MAX_TOTAL_CHARS} characters.`);
+1. Resume-to-job alignment score (0–100)
+2. Top matching resume sections
+3. Gaps or missing skills
+4. One specific improvement suggestion
+5. One interview tip based on the job
+
+Resume:
+${resume}
+
+Job Description:
+${job}`;
+
+      // Now check the prompt's true length
+      if (promptText.length > MAX_PROMPT_CHARS) {
+        alert(
+          `Your combined resume and job description (with instructions) is ${promptText.length} characters. ` +
+          `GPT-3.5 Turbo's safe max is ${MAX_PROMPT_CHARS}.\n\n` +
+          `Please shorten your resume and/or job description.`
+        );
         return;
       }
 
@@ -104,6 +114,7 @@
   </script>
 </body>
 </html>
+
 
 
 

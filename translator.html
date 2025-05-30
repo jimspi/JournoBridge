@@ -9,7 +9,7 @@
 <body class="bg-gray-900 text-white min-h-screen p-6">
   <header class="text-center mb-8">
     <h1 class="text-3xl font-bold text-teal-300">Skill Translator</h1>
-    <p class="text-gray-400">Get matched with real job titles based on your resume — plus one-click searches on LinkedIn and Indeed.</p>
+    <p class="text-gray-400">Get matched with real job titles based on your resume — plus what to add, learn, or fix to improve your chances.</p>
   </header>
   <main class="max-w-3xl mx-auto">
     <label class="block mb-2 text-teal-200">Target Role Type (e.g., remote, nonprofit, startup):</label>
@@ -25,23 +25,48 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `You're a career coach. Read the resume and recommend 3 highly relevant job titles in the ${type} space, based on specific skills or achievements. For each, explain the alignment in one sentence. Format: \n\n- [Job Title]: [Explanation]`
+          prompt: `You're a professional career coach and resume analyst. Read the following resume and:
+
+1. Evaluate the resume quality. Point out any major weaknesses, missing information, or areas that could be improved.
+2. Recommend 3 specific job titles that align with the candidate’s skills, experience, and the ${type} career path.
+3. For each job title:
+   - Give a one-sentence explanation why it fits
+   - Suggest one key certification, skill, or experience to add
+   - Recommend one reputable certification or course provider
+
+Respond in this format:
+
+Resume Feedback:
+- [bullet points about resume issues or improvements]
+
+Recommended Job Titles:
+- Job Title: Explanation. Recommended improvement. Suggested course/provider.`
         })
       });
       const data = await res.json();
       const output = document.getElementById('output');
       output.classList.remove('hidden');
-      const lines = data.output.split('\n').filter(line => line.trim().startsWith('- '));
-      output.innerHTML = lines.map(line => {
-        const title = line.replace(/^- /, '').split(':')[0].trim();
-        const explanation = line.split(':').slice(1).join(':').trim();
-        const keyword = encodeURIComponent(title);
-        return `<div><strong>${title}</strong>: ${explanation}<br>
-          <a href='https://www.linkedin.com/jobs/search/?keywords=${keyword}' target='_blank' class='underline text-teal-300'>Search on LinkedIn</a> | 
-          <a href='https://www.indeed.com/jobs?q=${keyword}' target='_blank' class='underline text-teal-300'>Search on Indeed</a></div>`;
+      const parts = data.output.split(/\n{2,}/); // split into sections
+
+      output.innerHTML = parts.map(section => {
+        if (section.startsWith('Resume Feedback:')) {
+          return `<div class='mb-6'><strong>Resume Feedback</strong><br>${section.replace('Resume Feedback:', '').trim().split('\n').map(line => `• ${line.trim()}`).join('<br>')}</div>`;
+        } else if (section.startsWith('Recommended Job Titles:')) {
+          const lines = section.replace('Recommended Job Titles:', '').trim().split('\n').filter(line => line.startsWith('-'));
+          return `<div><strong>Recommended Job Titles</strong><br>` +
+            lines.map(line => {
+              const title = line.replace(/^- /, '').split(':')[0].trim();
+              const keyword = encodeURIComponent(title);
+              return `<div class='mb-4'><strong>${title}</strong>: ${line.split(':').slice(1).join(':').trim()}<br>
+                <a href='https://www.linkedin.com/jobs/search/?keywords=${keyword}' target='_blank' class='underline text-teal-300'>Search on LinkedIn</a> | 
+                <a href='https://www.indeed.com/jobs?q=${keyword}' target='_blank' class='underline text-teal-300'>Search on Indeed</a></div>`;
+            }).join('') + `</div>`;
+        }
+        return `<div>${section}</div>`;
       }).join('');
     };
   </script>
 </body>
 </html>
+
 

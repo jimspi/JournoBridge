@@ -10,48 +10,64 @@
   <header class="mb-8 text-center">
     <a href="index.html" class="text-3xl font-bold text-teal-300 hover:text-teal-400 block">Pivot</a>
     <h1 class="text-3xl font-bold text-teal-300 mt-4">Job Decoder</h1>
-    <p class="text-gray-400">Paste a job description to get resume alignment, missing skills, and prep tips.</p>
+    <p class="text-gray-400">Paste any job description and we’ll decode it: alignment score, missing elements, and how to prep.</p>
   </header>
   <main class="max-w-3xl mx-auto">
+    <p class="text-sm text-gray-400 mb-4">Your resume will be pulled from localStorage. Keep total input under 11,000 characters for best results.</p>
+
     <label for="jobDesc" class="block mb-2 text-teal-300 font-semibold">Job Description</label>
     <textarea id="jobDesc" placeholder="Paste job description here..." class="w-full mb-4 p-3 rounded bg-gray-800 text-white border border-teal-500" rows="6"></textarea>
+
     <div class="flex items-center mb-4">
       <button id="decodeBtn" class="bg-blue-600 border-2 border-blue-300 px-6 py-2 rounded hover:bg-blue-500">Decode Job</button>
-      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-2 hidden">Copy Results</button>
+      <button id="copyBtn" class="bg-teal-500 px-6 py-2 rounded hover:bg-teal-400 ml-4 hidden">Copy Results</button>
     </div>
-    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden space-y-4"></div>
+
+    <div id="output" class="bg-gray-800 text-white p-4 rounded hidden whitespace-pre-wrap"></div>
   </main>
+
   <script>
     let lastOutput = '';
 
-    window.onload = () => {
-      const resume = localStorage.getItem('resumeText');
+    window.addEventListener('DOMContentLoaded', () => {
+      const resume = localStorage.getItem('resumeText') || '';
       if (!resume) {
-        alert('⚠️ You must upload a resume on the home page before using this tool.');
+        alert('⚠️ No resume found. Please upload your resume on the homepage first.');
       }
-    };
+    });
 
-    document.getElementById('decodeBtn').onclick = async () => {
-      const resume = localStorage.getItem('resumeText');
-      if (!resume) {
-        alert('⚠️ No resume found in localStorage. Please upload your resume on the homepage first.');
+    document.getElementById('decodeBtn').addEventListener('click', async () => {
+      let resume = localStorage.getItem('resumeText') || '';
+      const job = document.getElementById('jobDesc').value.trim();
+
+      if (!resume || !job) {
+        alert('⚠️ Both resume and job description are required.');
         return;
       }
-      const job = document.getElementById('jobDesc').value;
+
+      const basePrompt = `You're a hiring strategist. Compare the resume below to this job description and respond with:\n\n1. Resume-to-job alignment score (0–100)\n2. Strongest matching sections from resume\n3. Gaps or weaknesses\n4. One specific change to improve resume\n5. One smart interview prep tip based on the job\n\nResume:`;
+      const totalLimit = 11000;
+      const overhead = basePrompt.length + job.length + 10;
+      let wasTrimmed = false;
+      if (resume.length + overhead > totalLimit) {
+        resume = resume.substring(0, totalLimit - overhead);
+        wasTrimmed = true;
+      }
+
+      const fullPrompt = `${basePrompt}\n${resume}\n\nJob:\n${job}`;
       const output = document.getElementById('output');
       const copyBtn = document.getElementById('copyBtn');
 
-      output.innerHTML = 'Thinking...';
+      output.innerHTML = wasTrimmed ? '<p class="text-yellow-400 mb-2">⚠️ Resume was trimmed due to length. Result may be abbreviated.</p>' : '';
       output.classList.remove('hidden');
       copyBtn.classList.add('hidden');
+      output.innerHTML += 'Analyzing job...';
 
       try {
-        const res = await fetch('/api/gpt', {
+        const res = await fetch('/api/gpt.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: `You're a hiring strategist. Compare the resume below to this job description and respond with:\n\n1. Resume-to-job alignment score (0–100)\n2. Strongest matching sections from resume\n3. Gaps or weaknesses\n4. One specific change to improve resume\n5. One smart interview prep tip based on the job\n\nResume: ${resume}\n\nJob: ${job}`
-          })
+          body: JSON.stringify({ prompt: fullPrompt })
         });
 
         const data = await res.json();
@@ -63,23 +79,24 @@
           output.innerHTML = '<p class="text-red-500">No output returned. Please try again.</p>';
         }
       } catch (err) {
-        output.innerHTML = '<p class="text-red-500">An error occurred. Please try again later.</p>';
-        console.error(err);
+        output.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
+        console.error('Fetch Error:', err);
       }
-    };
+    });
 
-    document.getElementById('copyBtn').onclick = () => {
+    document.getElementById('copyBtn').addEventListener('click', () => {
       if (!lastOutput) return alert('No results to copy yet.');
-      navigator.clipboard.writeText(lastOutput).then(() => {
-        alert('Results copied to clipboard!');
-      }).catch(err => {
-        alert('Failed to copy results.');
-        console.error(err);
-      });
-    };
+      navigator.clipboard.writeText(lastOutput)
+        .then(() => alert('Results copied to clipboard!'))
+        .catch(err => {
+          alert('Failed to copy results.');
+          console.error('Clipboard error:', err);
+        });
+    });
   </script>
 </body>
 </html>
+
 
 
 
